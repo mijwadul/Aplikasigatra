@@ -16,21 +16,32 @@ def get_schools(current_user):
 @school_bp.route('/api/schools', methods=['POST'])
 @token_required
 def create_school(current_user):
-    """Create a new school (Developer only)."""
-    if current_user.role != 'Developer':
-        return jsonify({"error": "Permission denied."}), 403
-    
+    """Creates a new school."""
+    if current_user.role not in ['Developer', 'School Admin']:
+        return jsonify({"message": "Access denied"}), 403
+
     data = request.get_json()
-    if not data or not data.get('name'):
-        return jsonify({"error": "School name is required."}), 400
 
-    if School.query.filter_by(name=data['name']).first():
-        return jsonify({"error": "A school with this name already exists."}), 409
+    # --- FIX STARTS HERE ---
+    # Validate that required data (name and level) is present
+    if not data or 'name' not in data or 'level' not in data:
+        return jsonify({'message': 'School name and level are required.'}), 400
+    
+    # Check for empty strings
+    if not data['name'] or not data['level']:
+        return jsonify({'message': 'School name and level cannot be empty.'}), 400
 
-    new_school = School(name=data['name'], address=data.get('address'))
+    new_school = School(
+        name=data['name'],
+        address=data.get('address'), # address is optional
+        level=data['level']         # Get level from request data
+    )
+    # --- FIX ENDS HERE ---
+    
     db.session.add(new_school)
     db.session.commit()
-    return jsonify({"message": "School created successfully.", "id": new_school.id}), 201
+    
+    return jsonify(new_school.to_dict()), 201
 
 @school_bp.route('/api/schools/<int:school_id>', methods=['PUT'])
 @token_required

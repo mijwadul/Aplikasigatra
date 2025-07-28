@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, CircularProgress, IconButton } from '@mui/material';
+import {
+  Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Button, CircularProgress, IconButton
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { motion } from 'framer-motion';
@@ -22,6 +25,8 @@ const INITIAL_FORM_STATE = {
   password: '',
   confirmPassword: '',
   role: 'Teacher',
+  school_id: '',
+  school_ids: []
 };
 
 function UserManagementPage() {
@@ -29,7 +34,7 @@ function UserManagementPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [editingUser, setEditingUser] = useState(null);
@@ -66,12 +71,12 @@ function UserManagementPage() {
     setFormData(INITIAL_FORM_STATE);
     setIsFormModalOpen(true);
   };
-  
+
   const handleOpenEditModal = (userToEdit) => {
     setEditingUser(userToEdit);
     setIsFormModalOpen(true);
   };
-  
+
   const handleCloseFormModal = () => {
     setIsFormModalOpen(false);
     setEditingUser(null);
@@ -79,7 +84,7 @@ function UserManagementPage() {
 
   const handleFormSubmit = async (submittedData) => {
     const token = localStorage.getItem('authToken');
-    const url = editingUser 
+    const url = editingUser
       ? `http://localhost:5000/api/users/${editingUser.id}`
       : 'http://localhost:5000/api/users';
     const method = editingUser ? 'put' : 'post';
@@ -89,7 +94,22 @@ function UserManagementPage() {
     }
 
     try {
-      await axios[method](url, submittedData, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios[method](url, submittedData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const userId = editingUser?.id || res.data.user?.id;
+
+      if (submittedData.role !== 'Developer' && userId) {
+        const schoolPayload = submittedData.role === 'Teacher'
+          ? { school_ids: submittedData.school_ids }
+          : { school_ids: [submittedData.school_id] };
+
+        await axios.put(`http://localhost:5000/api/users/${userId}/assign-schools`, schoolPayload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
       handleCloseFormModal();
       fetchUsers();
     } catch (err) {
@@ -110,13 +130,15 @@ function UserManagementPage() {
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
     try {
-        const token = localStorage.getItem('authToken');
-        await axios.delete(`http://localhost:5000/api/users/${userToDelete.id}`, { headers: { Authorization: `Bearer ${token}` } });
-        fetchUsers();
-    } catch(err) {
-        alert(err.response?.data?.error || 'Failed to delete user.');
+      const token = localStorage.getItem('authToken');
+      await axios.delete(`http://localhost:5000/api/users/${userToDelete.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchUsers();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete user.');
     } finally {
-        handleCloseConfirmModal();
+      handleCloseConfirmModal();
     }
   };
 
@@ -131,15 +153,15 @@ function UserManagementPage() {
   if (error) {
     return (
       <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition} style={{ position: 'absolute', width: '100%' }}>
-         <Typography color="error">{error}</Typography>
+        <Typography color="error">{error}</Typography>
       </motion.div>
-    )
+    );
   }
 
   return (
     <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition} style={{ position: 'absolute', width: '100%' }}>
       <Box sx={{ p: { xs: 2, sm: 3 } }}>
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', textAlign: { xs: 'center', md: 'left' }, justifyContent: 'space-between', mb: 4 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
           <Box sx={{ mb: { xs: 3, md: 0 } }}>
             <Typography variant="h1">User Management</Typography>
             <Typography variant="h5" color="text.secondary">
@@ -149,48 +171,47 @@ function UserManagementPage() {
               Add New User
             </Button>
           </Box>
-          <Box
-            component="img"
-            src={UserImage}
-            alt="User management illustration"
-            sx={{
-              height: { xs: 220, md: 220 },
-              maxWidth: { xs: '80%', md: 'auto' }
-            }}
-          />
+          <Box component="img" src={UserImage} alt="User illustration" sx={{ height: { xs: 220, md: 220 }, maxWidth: { xs: '80%', md: 'auto' } }} />
         </Box>
-        
+
         <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Username</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                  <TableCell align="right">Actions</TableCell>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Username</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>School(s)</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {users.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.username}</TableCell>
+                  <TableCell>{row.email}</TableCell>
+                  <TableCell>{row.role}</TableCell>
+                  <TableCell>
+                    {Array.isArray(row.school_names)
+                      ? row.school_names.join(', ')
+                      : row.school_names || '-'}
+                  </TableCell>
+                  <TableCell align="right">
+                    <IconButton onClick={() => handleOpenEditModal(row)} color="primary" disabled={user && user.id === row.id}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleOpenConfirmModal(row)} color="error" disabled={user && user.id === row.id}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {users.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell>{row.username}</TableCell>
-                    <TableCell>{row.email}</TableCell>
-                    <TableCell>{row.role}</TableCell>
-                    <TableCell align="right">
-                      <IconButton onClick={() => handleOpenEditModal(row)} color="primary" disabled={user && user.id === row.id}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton onClick={() => handleOpenConfirmModal(row)} color="error" disabled={user && user.id === row.id}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Box>
-      <UserFormModal 
+
+      <UserFormModal
         open={isFormModalOpen}
         onClose={handleCloseFormModal}
         onSubmit={handleFormSubmit}
@@ -198,6 +219,7 @@ function UserManagementPage() {
         setFormData={setFormData}
         initialData={editingUser || {}}
       />
+
       <ConfirmationModal
         open={isConfirmModalOpen}
         onClose={handleCloseConfirmModal}

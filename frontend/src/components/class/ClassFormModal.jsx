@@ -1,20 +1,64 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material';
 import AuthContext from '../../context/AuthContext';
+import axios from 'axios';
 
 function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {} }) {
   const { user } = useContext(AuthContext);
-  const [formData, setFormData] = useState({ name: '', grade_level: '', school_id: '' });
+  const [formData, setFormData] = useState({
+    grade_level: '',
+    parallel_class: '',
+    school_id: '',
+    subject_id: '',
+    teacher_id: '',
+    new_subject_name: ''
+  });
+
+  const [teachers, setTeachers] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+
+  const fetchFormData = async () => {
+    const token = localStorage.getItem('authToken');
+    try {
+      const res = await axios.get('http://localhost:5000/api/classes/form-data', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.data.teachers) setTeachers(res.data.teachers);
+      if (res.data.subjects) setSubjects(res.data.subjects);
+
+      // Jika school_id belum diatur, ambil dari response
+      if (!formData.school_id && res.data.school?.id) {
+        setFormData(prev => ({ ...prev, school_id: res.data.school.id }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch form data:', err);
+    }
+  };
 
   useEffect(() => {
-    // This effect runs when the modal is opened to set the form's initial state
     if (open) {
       setFormData({
-        name: initialData.name || '',
         grade_level: initialData.grade_level || '',
-        // For Admins, school_id is their own. For Developers, it's whatever is passed in or empty.
+        parallel_class: initialData.parallel_class || '',
         school_id: initialData.school_id || (user?.role === 'School Admin' ? user.school_id : ''),
+        subject_id: initialData.subject_id || '',
+        teacher_id: initialData.teacher_id || '',
+        new_subject_name: ''
       });
+
+      fetchFormData();
     }
   }, [initialData, open, user]);
 
@@ -23,9 +67,28 @@ function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+
+    const dataToSubmit = { ...formData };
+
+    if (formData.subject_id === 'Others' && formData.new_subject_name.trim()) {
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await axios.post('http://localhost:5000/api/subjects', {
+          name: formData.new_subject_name
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        dataToSubmit.subject_id = res.data.id;
+      } catch (err) {
+        alert('Gagal menambahkan mata pelajaran baru.');
+        return;
+      }
+    }
+
+    delete dataToSubmit.new_subject_name;
+    onSubmit(dataToSubmit);
   };
 
   return (
@@ -35,34 +98,35 @@ function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {
         <TextField
           autoFocus
           margin="dense"
-          name="name"
-          label="Class Name"
-          fullWidth
-          variant="outlined"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
-        <TextField
-          margin="dense"
           name="grade_level"
-          label="Grade Level (e.g., 7, 8, 9)"
+          label="Grade Level (e.g., 7, 8, 10)"
+          type="number"
           fullWidth
           variant="outlined"
           value={formData.grade_level}
           onChange={handleChange}
           required
         />
-        
-        {/* Only show the School selector to Developers */}
+        <TextField
+          margin="dense"
+          name="parallel_class"
+          label="Parallel Class (e.g., A, B)"
+          type="text"
+          fullWidth
+          variant="outlined"
+          value={formData.parallel_class}
+          onChange={handleChange}
+          required
+        />
+
         {user?.role === 'Developer' && (
           <FormControl fullWidth margin="dense" required>
             <InputLabel>School</InputLabel>
             <Select
               name="school_id"
               value={formData.school_id}
-              label="School"
               onChange={handleChange}
+              label="School"
             >
               {schools.map(school => (
                 <MenuItem key={school.id} value={school.id}>{school.name}</MenuItem>
@@ -70,10 +134,55 @@ function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {
             </Select>
           </FormControl>
         )}
+
+        <FormControl fullWidth margin="dense" required>
+          <InputLabel>Subject</InputLabel>
+          <Select
+            name="subject_id"
+            value={formData.subject_id}
+            onChange={handleChange}
+            label="Subject"
+          >
+            {subjects.map(subject => (
+              <MenuItem key={subject.id} value={subject.id}>{subject.name}</MenuItem>
+            ))}
+            <MenuItem value="Others">Others</MenuItem>
+          </Select>
+        </FormControl>
+
+        {formData.subject_id === 'Others' && (
+          <TextField
+            margin="dense"
+            name="new_subject_name"
+            label="New Subject Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={formData.new_subject_name}
+            onChange={handleChange}
+            required
+          />
+        )}
+
+        <FormControl fullWidth margin="dense" required>
+          <InputLabel>Teacher</InputLabel>
+          <Select
+            name="teacher_id"
+            value={formData.teacher_id}
+            onChange={handleChange}
+            label="Teacher"
+          >
+            {teachers.map((teacher) => (
+              <MenuItem key={teacher.id} value={teacher.id}>{teacher.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button type="submit" variant="contained">{initialData.id ? 'Save Changes' : 'Create Class'}</Button>
+        <Button type="submit" variant="contained">
+          {initialData.id ? 'Save Changes' : 'Create Class'}
+        </Button>
       </DialogActions>
     </Dialog>
   );

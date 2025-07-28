@@ -6,7 +6,7 @@ from .extensions import db, migrate
 def create_app():
     """Create and configure an instance of the Flask application."""
     app = Flask(__name__, instance_relative_config=True)
-    CORS(app)
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
     # --- Configuration ---
     app.config.from_mapping(
@@ -27,7 +27,7 @@ def create_app():
     from . import models
 
     # --- Register Blueprints ---
-    from .routes import upload_routes, status_routes, generate_routes, auth_routes, user_management_routes, class_routes, school_routes
+    from .routes import upload_routes, status_routes, generate_routes, auth_routes, user_management_routes, class_routes, school_routes, subject_routes
     app.register_blueprint(upload_routes.upload_bp)
     app.register_blueprint(status_routes.status_bp)
     app.register_blueprint(generate_routes.generate_bp)
@@ -35,7 +35,8 @@ def create_app():
     app.register_blueprint(user_management_routes.user_mgmt_bp)
     app.register_blueprint(class_routes.class_bp)
     app.register_blueprint(school_routes.school_bp)
-    
+    app.register_blueprint(subject_routes.subject_bp)
+
     from . import commands
     commands.init_app(app)
 

@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl
+} from '@mui/material';
 
 function SchoolFormModal({ open, onClose, onSubmit, initialData = {} }) {
-  const [formData, setFormData] = useState({ name: '', address: '' });
+  const [formData, setFormData] = useState({ name: '', address: '', level: '' });
 
   useEffect(() => {
     setFormData({
       name: initialData.name || '',
-      address: initialData.address || '' // Add address to state
+      address: initialData.address || '',
+      level: initialData.level || ''
     });
   }, [initialData, open]);
 
@@ -25,8 +37,20 @@ function SchoolFormModal({ open, onClose, onSubmit, initialData = {} }) {
     <Dialog open={open} onClose={onClose} component="form" onSubmit={handleSubmit} fullWidth maxWidth="xs">
       <DialogTitle>{initialData.id ? 'Edit School' : 'Add New School'}</DialogTitle>
       <DialogContent>
-        <TextField autoFocus margin="dense" name="name" label="School Name" type="text" fullWidth variant="outlined" value={formData.name} onChange={handleChange} required />
-        <TextField // Add address TextField
+        <TextField
+          autoFocus
+          margin="dense"
+          name="name"
+          label="School Name"
+          type="text"
+          fullWidth
+          variant="outlined"
+          value={formData.name}
+          onChange={handleChange}
+          required
+        />
+
+        <TextField
           margin="dense"
           name="address"
           label="Address"
@@ -38,12 +62,30 @@ function SchoolFormModal({ open, onClose, onSubmit, initialData = {} }) {
           value={formData.address}
           onChange={handleChange}
         />
+
+        <FormControl fullWidth margin="dense" required>
+          <InputLabel id="level-label">School Level</InputLabel>
+          <Select
+            labelId="level-label"
+            name="level"
+            value={formData.level}
+            onChange={handleChange}
+            label="School Level"
+          >
+            <MenuItem value="SD/MI">SD/MI</MenuItem>
+            <MenuItem value="SMP/MTs">SMP/MTs</MenuItem>
+            <MenuItem value="SMA/MA">SMA/MA</MenuItem>
+          </Select>
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button type="submit" variant="contained">{initialData.id ? 'Save Changes' : 'Create School'}</Button>
+        <Button type="submit" variant="contained">
+          {initialData.id ? 'Save Changes' : 'Create School'}
+        </Button>
       </DialogActions>
     </Dialog>
   );
 }
+
 export default SchoolFormModal;

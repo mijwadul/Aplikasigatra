@@ -34,10 +34,10 @@ def login():
 @auth_bp.route('/api/auth/profile', methods=['GET'])
 @token_required
 def get_profile(current_user):
-    """Gets the profile of the currently logged-in user."""
     return jsonify({
         "id": current_user.id,
         "username": current_user.username,
         "email": current_user.email,
-        "role": current_user.role
-    }), 200    
+        "role": current_user.role,
+        "school_id": current_user.school_id  # ⬅️ Tambahkan baris ini
+    }), 200

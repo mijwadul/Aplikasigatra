@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import AuthContext from '../../context/AuthContext';
 import UserFormModal from '../../components/user/UserFormModal';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
+import AssignSchoolModal from '../../components/user/AssignSchoolModal';
 import UserImage from '../../assets/user.png';
 
 const pageVariants = {
@@ -41,6 +42,8 @@ function UserManagementPage() {
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -83,41 +86,48 @@ function UserManagementPage() {
   };
 
   const handleFormSubmit = async (submittedData) => {
-    const token = localStorage.getItem('authToken');
-    const url = editingUser
-      ? `http://localhost:5000/api/users/${editingUser.id}`
-      : 'http://localhost:5000/api/users';
-    const method = editingUser ? 'put' : 'post';
+  const token = localStorage.getItem('authToken');
+  const url = editingUser
+    ? `http://localhost:5000/api/users/${editingUser.id}`
+    : 'http://localhost:5000/api/users';
+  const method = editingUser ? 'put' : 'post';
 
-    if (editingUser && !submittedData.password) {
-      delete submittedData.password;
-    }
+  if (editingUser && !submittedData.password) {
+    delete submittedData.password;
+  }
 
-    try {
-      const res = await axios[method](url, submittedData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+  try {
+    const res = await axios[method](url, submittedData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
-      const userId = editingUser?.id || res.data.user?.id;
+    const userId = editingUser?.id || res.data.user?.id;
 
-      if (submittedData.role !== 'Developer' && userId) {
-        const schoolPayload = submittedData.role === 'Teacher'
-          ? { school_ids: submittedData.school_ids }
-          : { school_ids: [submittedData.school_id] };
-
-        await axios.put(`http://localhost:5000/api/users/${userId}/assign-schools`, schoolPayload, {
+    // 💡 Hanya Developer yang boleh assign
+    if (userId && user.role === 'Developer') {
+      if (submittedData.role === 'Teacher' && submittedData.school_ids?.length > 0) {
+        await axios.put(`http://localhost:5000/api/users/${userId}/assign-schools`, {
+          school_ids: submittedData.school_ids
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else if (submittedData.role === 'School Admin' && submittedData.school_id) {
+        await axios.put(`http://localhost:5000/api/users/${userId}/assign-schools`, {
+          school_ids: [submittedData.school_id]
+        }, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
-
-      handleCloseFormModal();
-      fetchUsers();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to save user.');
     }
-  };
 
-  const handleOpenConfirmModal = (user) => {
+    handleCloseFormModal();
+    fetchUsers();
+  } catch (err) {
+    alert(err.response?.data?.error || 'Failed to save user.');
+  }
+  };
+  
+const handleOpenConfirmModal = (user) => {
     setUserToDelete(user);
     setIsConfirmModalOpen(true);
   };
@@ -167,9 +177,14 @@ function UserManagementPage() {
             <Typography variant="h5" color="text.secondary">
               Create, view, and manage user accounts for your institution.
             </Typography>
-            <Button variant="contained" onClick={handleOpenCreateModal} sx={{ mt: 2 }}>
-              Add New User
-            </Button>
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+              <Button variant="contained" onClick={handleOpenCreateModal}>
+                Add New User
+              </Button>
+              <Button variant="outlined" onClick={() => setIsAssignModalOpen(true)}>
+                Assign Teacher
+              </Button>
+            </Box>
           </Box>
           <Box component="img" src={UserImage} alt="User illustration" sx={{ height: { xs: 220, md: 220 }, maxWidth: { xs: '80%', md: 'auto' } }} />
         </Box>
@@ -226,6 +241,11 @@ function UserManagementPage() {
         onConfirm={handleConfirmDelete}
         title="Confirm Deletion"
         message={`Are you sure you want to delete the user "${userToDelete?.username}"? This action cannot be undone.`}
+      />
+
+      <AssignSchoolModal
+        open={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
       />
     </motion.div>
   );

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request 
 from app.extensions import db, bcrypt
 from app.models import User, School
 from app.utils.decorators import token_required
@@ -10,32 +10,29 @@ user_mgmt_bp = Blueprint('user_mgmt_bp', __name__)
 def get_users(current_user):
     if current_user.role == 'Developer':
         users = User.query.all()
+
     elif current_user.role == 'School Admin':
-        if not current_user.school_id:
-            return jsonify([{
-                "id": current_user.id,
-                "username": current_user.username,
-                "email": current_user.email,
-                "role": current_user.role,
-                "school_id": current_user.school_id
-            }])
         users = User.query.filter(
-            (User.id == current_user.id) |
-            ((User.school_id == current_user.school_id) & (User.role == 'Teacher'))
+            (User.role == 'Teacher') | (User.id == current_user.id)
         ).all()
+
     else:
         return jsonify({"error": "You do not have permission to access this resource."}), 403
 
-    user_list = [{
-        "id": u.id,
-        "username": u.username,
-        "email": u.email,
-        "role": u.role,
-        "school_id": u.school_id,
-        "school_ids": [s.id for s in u.schools_taught] if u.role == 'Teacher' else [],
-        "school_names": [s.name for s in u.schools_taught] if u.role == 'Teacher'
-                        else [u.school.name] if u.school else []
-    } for u in users]
+    user_list = []
+    for u in users:
+        school_names = [s.name for s in u.schools_taught] if u.role == 'Teacher' else [u.school.name] if u.school else []
+        school_ids = [s.id for s in u.schools_taught] if u.role == 'Teacher' else []
+
+        user_list.append({
+            "id": u.id,
+            "username": u.username,
+            "email": u.email,
+            "role": u.role,
+            "school_id": u.school_id,
+            "school_ids": school_ids,
+            "school_names": school_names
+        })
 
     return jsonify(user_list)
 
@@ -50,7 +47,7 @@ def create_user(current_user):
         return jsonify({"error": "User with this email or username already exists."}), 409
 
     if current_user.role == 'School Admin' and data['role'] != 'Teacher':
-        return jsonify({"error": "Admins can only create Teacher accounts."}), 403
+        return jsonify({"error": "School Admin can only create Teacher accounts."}), 403
 
     hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
     new_user = User(
@@ -61,14 +58,27 @@ def create_user(current_user):
     )
 
     if current_user.role == 'School Admin':
+        if not current_user.school_id:
+            return jsonify({"error": "Admin account has no associated school."}), 400
+
         new_user.school_id = current_user.school_id
+
+        school = School.query.get(current_user.school_id)
+        if not school:
+            return jsonify({"error": "Admin's school not found."}), 404
+        new_user.schools_taught.append(school)
+
     elif data.get('school_id') and data['role'] == 'School Admin':
         new_user.school_id = data['school_id']
 
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({"message": "User created successfully.", "user": {"id": new_user.id}}), 201
+    return jsonify({
+        "message": "User created successfully.",
+        "user": {"id": new_user.id}
+    }), 201
+
 
 @user_mgmt_bp.route('/api/users/<int:user_id>', methods=['PUT'])
 @token_required
@@ -123,40 +133,30 @@ def delete_user(current_user, user_id):
 @token_required
 def assign_schools_to_user(current_user, user_id):
     """Developer dapat assign guru ke banyak sekolah dan admin ke satu sekolah."""
-    if current_user.role != 'Developer':
+    if current_user.role not in ['Developer', 'School Admin']:
         return jsonify({"error": "Permission denied."}), 403
-
-    print(f"[DEBUG] Assigning schools to user_id={user_id} by {current_user.role}")
 
     data = request.get_json()
     school_ids = data.get("school_ids")
 
     if not isinstance(school_ids, list) or not school_ids:
-        print("[DEBUG] Invalid or missing school_ids:", school_ids)
         return jsonify({"error": "Invalid or missing school_ids"}), 400
 
     user = User.query.get_or_404(user_id)
-    print(f"[DEBUG] Target user: {user.username} (role: {user.role})")
 
     if user.role == 'School Admin':
         if len(school_ids) != 1:
-            print("[DEBUG] Admin must be assigned exactly one school.")
             return jsonify({"error": "School Admin must belong to exactly one school."}), 400
         user.school_id = school_ids[0]
-        print(f"[DEBUG] Assigned school_id={user.school_id} to admin {user.username}")
 
     elif user.role == 'Teacher':
-        print(f"[DEBUG] Requested school_ids: {school_ids}")
         schools = School.query.filter(School.id.in_(school_ids)).all()
-        print(f"[DEBUG] Schools found in DB: {[s.name for s in schools]}")
-
-        user.schools_taught = schools
-        print(f"[DEBUG] Assigned schools_taught: {[s.name for s in user.schools_taught]}")
+        for s in schools:
+            if s not in user.schools_taught:
+                user.schools_taught.append(s)
 
     else:
-        print("[DEBUG] Invalid role for school assignment.")
         return jsonify({"error": "Only Teacher or School Admin can be assigned to schools."}), 400
 
     db.session.commit()
-    print("[DEBUG] Commit successful.")
     return jsonify({"message": "School assignment updated successfully."})

@@ -8,8 +8,14 @@ school_bp = Blueprint('school_bp', __name__)
 @school_bp.route('/api/schools', methods=['GET'])
 @token_required
 def get_schools(current_user):
-    """Get a list of all schools."""
-    schools = School.query.all()
+    """Get a list of schools based on user role."""
+    if current_user.role == 'Developer':
+        schools = School.query.all()
+    elif current_user.role == 'School Admin':
+        schools = School.query.filter_by(id=current_user.school_id).all()
+    else:
+        return jsonify({"error": "Access denied"}), 403
+
     school_list = [{"id": s.id, "name": s.name, "address": s.address} for s in schools]
     return jsonify(school_list)
 

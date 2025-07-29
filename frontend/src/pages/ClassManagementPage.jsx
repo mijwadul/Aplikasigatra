@@ -52,13 +52,17 @@ function ClassManagementPage() {
   };
 
   useEffect(() => {
-    if (user && ['Developer', 'School Admin', 'Teacher'].includes(user.role)) {
-      fetchData();
-    } else if (user) {
-      setLoading(false);
-      setError('You do not have permission to view this page.');
-    }
-  }, [user]);
+  console.log('[DEBUG] user:', user);
+  if (user && ['Developer', 'School Admin', 'Teacher'].includes(user.role)) {
+    console.log('[DEBUG] Role allowed, fetching data...');
+    fetchData();
+  } else if (user) {
+    console.log('[DEBUG] Role not allowed:', user.role);
+    setLoading(false);
+    setError('You do not have permission to view this page.');
+  }
+}, [user]);
+
 
   const handleOpenCreateModal = () => {
     setEditingClass(null);

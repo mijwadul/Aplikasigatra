@@ -1,3 +1,4 @@
+// UserFormModal.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Button, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -5,11 +6,20 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 
-function UserFormModal({ open, onClose, onSubmit, formData, setFormData, initialData = {} }) {
+function UserFormModal({ open, onClose, onSubmit, initialData = {} }) {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: 'Teacher',
+    school_id: '',
+    school_ids: []
+  });
+
   const [error, setError] = useState('');
   const [schools, setSchools] = useState([]);
 
-  // Ambil daftar sekolah saat modal dibuka & role cocok
   const fetchSchools = async () => {
     try {
       const token = localStorage.getItem('authToken');
@@ -22,26 +32,25 @@ function UserFormModal({ open, onClose, onSubmit, formData, setFormData, initial
     }
   };
 
-  // Saat modal dibuka atau initialData berubah, sinkronkan ke formData
   useEffect(() => {
     if (open) {
+      const role = initialData.role || 'Teacher';
       setFormData({
         username: initialData.username || '',
         email: initialData.email || '',
         password: '',
         confirmPassword: '',
-        role: initialData.role || 'Teacher',
+        role,
         school_id: initialData.school_id || '',
         school_ids: initialData.school_ids || []
       });
 
-      if (initialData.role === 'Teacher' || initialData.role === 'School Admin') {
+      if (role === 'Teacher' || role === 'School Admin') {
         fetchSchools();
       }
     }
   }, [initialData, open]);
 
-  // Saat user ganti role secara manual
   const handleRoleChange = (e) => {
     const role = e.target.value;
     setFormData(prev => ({

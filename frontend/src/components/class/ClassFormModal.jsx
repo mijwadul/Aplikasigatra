@@ -1,3 +1,4 @@
+// ClassFormModal.jsx
 import React, { useState, useEffect, useContext } from 'react';
 import {
   Button,
@@ -16,6 +17,7 @@ import axios from 'axios';
 
 function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {} }) {
   const { user } = useContext(AuthContext);
+
   const [formData, setFormData] = useState({
     grade_level: '',
     parallel_class: '',
@@ -35,32 +37,57 @@ function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (res.data.teachers) setTeachers(res.data.teachers);
       if (res.data.subjects) setSubjects(res.data.subjects);
 
-      // Jika school_id belum diatur, ambil dari response
       if (!formData.school_id && res.data.school?.id) {
         setFormData(prev => ({ ...prev, school_id: res.data.school.id }));
       }
+
+      if (res.data.teachers) setTeachers(res.data.teachers);
     } catch (err) {
       console.error('Failed to fetch form data:', err);
     }
   };
 
+  const fetchTeachersForDeveloper = async (schoolId) => {
+    const token = localStorage.getItem('authToken');
+    try {
+      const res = await axios.get(`http://localhost:5000/api/schools/${schoolId}/details-for-class`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.data.teachers) setTeachers(res.data.teachers);
+    } catch (err) {
+      console.error('Failed to fetch school details:', err);
+    }
+  };
+
   useEffect(() => {
     if (open) {
+      const defaultSchoolId = initialData.school_id || (user?.role === 'School Admin' ? user.school_id : '');
+
       setFormData({
         grade_level: initialData.grade_level || '',
         parallel_class: initialData.parallel_class || '',
-        school_id: initialData.school_id || (user?.role === 'School Admin' ? user.school_id : ''),
+        school_id: defaultSchoolId,
         subject_id: initialData.subject_id || '',
         teacher_id: initialData.teacher_id || '',
         new_subject_name: ''
       });
 
       fetchFormData();
+
+      if (user?.role === 'Developer' && defaultSchoolId) {
+        fetchTeachersForDeveloper(defaultSchoolId);
+      }
     }
   }, [initialData, open, user]);
+
+  useEffect(() => {
+    if (user?.role === 'Developer' && formData.school_id) {
+      fetchTeachersForDeveloper(formData.school_id);
+    }
+  }, [formData.school_id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,7 +96,6 @@ function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const dataToSubmit = { ...formData };
 
     if (formData.subject_id === 'Others' && formData.new_subject_name.trim()) {

@@ -109,29 +109,44 @@ def get_classes(current_user):
 @class_bp.route('/api/classes', methods=['POST'])
 @token_required
 def create_class(current_user):
-    """Membuat kelas baru dengan struktur data yang lengkap."""
-    if current_user.role != 'School Admin':
-        return jsonify({"message": "Hanya Admin Sekolah yang bisa membuat kelas"}), 403
+    """
+    Membuat kelas baru — mendukung School Admin dan Developer.
+    - School Admin: school_id dari current_user
+    - Developer: wajib mengirim school_id di request body
+    """
+    if current_user.role not in ['School Admin', 'Developer']:
+        return jsonify({"message": "Akses ditolak"}), 403
 
     data = request.get_json()
     required_fields = ['subject_id', 'teacher_id', 'grade_level', 'parallel_class']
+    if current_user.role == 'Developer':
+        required_fields.append('school_id')
+
+    # Cek kelengkapan data
     if not all(field in data for field in required_fields):
-        return jsonify({'message': 'Data tidak lengkap. Dibutuhkan subject, teacher, grade, dan parallel class.'}), 400
+        return jsonify({'message': f'Data tidak lengkap. Dibutuhkan: {", ".join(required_fields)}'}), 400
+
+    # Tentukan school_id
+    school_id = current_user.school_id if current_user.role == 'School Admin' else data.get('school_id')
+
+    # Validasi school_id untuk Developer
+    if current_user.role == 'Developer':
+        school = School.query.get(school_id)
+        if not school:
+            return jsonify({"message": "School ID tidak valid"}), 404
 
     new_class = Class(
-        school_id=current_user.school_id,
+        school_id=school_id,
         subject_id=data['subject_id'],
         teacher_id=data['teacher_id'],
         grade_level=data['grade_level'],
         parallel_class=str(data['parallel_class']).upper()
     )
-    
+
     db.session.add(new_class)
     db.session.commit()
-    
-    # Mengambil data relasi agar bisa dikirim balik ke frontend
+
     created_class = Class.query.get(new_class.id)
-    
     return jsonify(created_class.to_dict()), 201
 
 

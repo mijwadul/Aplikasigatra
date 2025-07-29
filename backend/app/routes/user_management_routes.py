@@ -4,7 +4,6 @@ from app.models import User, School
 from app.utils.decorators import token_required
 
 user_mgmt_bp = Blueprint('user_mgmt_bp', __name__)
-print(f"[DEBUG] Assigning schools to user {user_id} as {user.role}")
 
 @user_mgmt_bp.route('/api/users', methods=['GET'])
 @token_required

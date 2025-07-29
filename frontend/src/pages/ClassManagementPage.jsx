@@ -52,7 +52,7 @@ function ClassManagementPage() {
   };
 
   useEffect(() => {
-    if (user && (user.role === 'Developer' || user.role === 'School Admin')) {
+    if (user && ['Developer', 'School Admin', 'Teacher'].includes(user.role)) {
       fetchData();
     } else if (user) {
       setLoading(false);
@@ -149,9 +149,11 @@ function ClassManagementPage() {
             <Typography variant="h5" color="text.secondary">
               Add, edit, or remove classes for your school.
             </Typography>
-            <Button variant="contained" onClick={handleOpenCreateModal} sx={{ mt: 2 }}>
-              Add New Class
-            </Button>
+            {user?.role !== 'Teacher' && (
+              <Button variant="contained" onClick={handleOpenCreateModal} sx={{ mt: 2 }}>
+                Add New Class
+              </Button>
+            )}
           </Box>
           <Box
             component="img"
@@ -182,8 +184,12 @@ function ClassManagementPage() {
                   <TableCell>{row.subject || '-'}</TableCell>
                   <TableCell>{row.teacher || '-'}</TableCell>
                   <TableCell align="right">
-                    <IconButton onClick={() => handleOpenEditModal(row)} color="primary"><EditIcon /></IconButton>
-                    <IconButton onClick={() => handleOpenConfirmModal(row)} color="error"><DeleteIcon /></IconButton>
+                    {user?.role !== 'Teacher' && (
+                      <>
+                        <IconButton onClick={() => handleOpenEditModal(row)} color="primary"><EditIcon /></IconButton>
+                        <IconButton onClick={() => handleOpenConfirmModal(row)} color="error"><DeleteIcon /></IconButton>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

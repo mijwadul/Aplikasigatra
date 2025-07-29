@@ -90,19 +90,22 @@ def get_school_details(current_user, school_id):
 @class_bp.route('/api/classes', methods=['GET'])
 @token_required
 def get_classes(current_user):
-    """Mengambil semua kelas berdasarkan sekolah dari admin yang login."""
-    
-    # Developer bisa melihat semua kelas (opsional, bisa dihapus jika tidak perlu)
     if current_user.role == 'Developer':
         classes = Class.query.all()
-    # Admin Sekolah hanya melihat kelas di sekolahnya
+
     elif current_user.role == 'School Admin' and current_user.school_id:
         classes = Class.query.filter_by(school_id=current_user.school_id).all()
+
+    elif current_user.role == 'Teacher':
+        teacher_schools = current_user.schools_taught
+        school_ids = [s.id for s in teacher_schools]
+        classes = Class.query.filter(Class.school_id.in_(school_ids)).all()
+
     else:
-        # Jika bukan admin atau admin tidak punya sekolah, kembalikan daftar kosong
         classes = []
 
     return jsonify([c.to_dict() for c in classes]), 200
+
 
 
 # Endpoint [MODIFIKASI] untuk membuat kelas baru

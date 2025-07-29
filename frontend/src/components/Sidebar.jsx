@@ -34,15 +34,15 @@ const SidebarContent = () => {
     { text: 'Docs', icon: <MenuBookOutlinedIcon />, path: '#', roles: ['Developer', 'School Admin', 'Teacher'] },
     { text: 'AI Tools', icon: <PsychologyAltOutlinedIcon />, path: '#', roles: ['Developer', 'School Admin', 'Teacher'] },
     { text: 'Reports', icon: <BarChartOutlinedIcon />, path: '#', roles: ['Developer', 'School Admin', 'Teacher'] },
-    { text: 'School Management', icon: <SchoolOutlinedIcon />, path: '/schools', roles: ['Developer'] },
-    { text: 'Class Management', icon: <ClassOutlinedIcon />, path: '/classes', roles: ['Developer', 'School Admin'] },
+    { text: 'School Management', icon: <SchoolOutlinedIcon />, path: '/schools', roles: ['Developer', 'School Admin'] },
+    { text: 'Class Management', icon: <ClassOutlinedIcon />, path: '/classes', roles: ['Developer', 'School Admin', 'Teacher'] },
     { text: 'User Management', icon: <GroupOutlinedIcon />, path: '/users', roles: ['Developer', 'School Admin'] },
   ];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <List>
-        <ListItem sx={{ height: '64px', display: 'flex', justifyContent: 'center', p: 1 }}>
+        <ListItem sx={{ height: '100px', display: 'flex', justifyContent: 'center', p: 1 }}>
           <img src={LogoImage} alt="Gatra Sinau.AI Logo" style={{ maxHeight: '100%', maxWidth: '100%' }} />
         </ListItem>
         <Divider />

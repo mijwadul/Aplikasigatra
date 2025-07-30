@@ -3,6 +3,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import AITools from './pages/aitools/AITools';
+import Retriever from './pages/aitools/Retriever';
 import UserManagementPage from './pages/user/UserManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
@@ -25,6 +27,8 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         >
+          <Route path="/ai/tools" element={<AITools />} />
+          <Route path="/ai/retriever" element={<Retriever />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/schools" element={<SchoolManagementPage />} />
           <Route path="/classes" element={<ClassManagementPage />} />

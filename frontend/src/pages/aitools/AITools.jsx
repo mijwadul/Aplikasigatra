@@ -1,19 +1,29 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  CardActionArea,
-  Avatar,
-  useTheme
+  Box, Typography, Grid, Paper,
+  Avatar, useTheme, Button
 } from '@mui/material';
+import { motion } from 'framer-motion';
+
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import SearchIcon from '@mui/icons-material/Search';
 import CreateIcon from '@mui/icons-material/Create';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+
+import AIToolsImage from '../../assets/AI.png';
+
+const pageVariants = {
+  initial: { opacity: 0, rotateY: -90 },
+  in: { opacity: 1, rotateY: 0 },
+  out: { opacity: 0, rotateY: 90 },
+};
+
+const pageTransition = {
+  type: 'tween',
+  ease: 'anticipate',
+  duration: 0.5,
+};
 
 function AITools() {
   const navigate = useNavigate();
@@ -21,81 +31,103 @@ function AITools() {
 
   const tools = [
     {
-      title: 'Retriever Dokumen',
-      description: 'Ambil & embed dokumen kurikulum dari situs resmi.',
+      title: 'Document Retriever',
+      description: 'Fetch and embed curriculum documents from official sources.',
       icon: <LibraryBooksIcon fontSize="large" />,
-      path: '/aitools/retriever'
+      path: '/aitools/retriever',
     },
     {
-      title: 'Cari Template Kurikulum',
-      description: 'Temukan CP, ATP, dst via Google Search API.',
+      title: 'Curriculum Search',
+      description: 'Find CP, ATP, and others via Google Search API.',
       icon: <SearchIcon fontSize="large" />,
-      path: '/aitools/search'
+      path: '/aitools/search',
     },
     {
-      title: 'Generator Dokumen',
-      description: 'Buat RPP, Modul Ajar, CP, dst secara otomatis.',
+      title: 'Document Generator',
+      description: 'Automatically create RPP, Teaching Modules, CP, etc.',
       icon: <CreateIcon fontSize="large" />,
-      path: '/aitools/generator'
+      path: '/aitools/generator',
     },
     {
-      title: 'Evaluasi Otomatis (Segera)',
-      description: 'Input nilai & AI bantu analisis pembelajaran.',
+      title: 'Automatic Evaluation (Coming Soon)',
+      description: 'Input scores and let AI analyze learning results.',
       icon: <AssessmentIcon fontSize="large" />,
-      path: '#'
-    }
+      path: '#',
+    },
   ];
 
   return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        🎓 Gatra Sinau.AI — Alat Cerdas untuk Guru
-      </Typography>
+    <motion.div
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
+      style={{ position: 'absolute', width: '100%' }}
+    >
+      <Box sx={{ p: { xs: 2, sm: 3 } }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 4,
+            textAlign: { xs: 'center', md: 'left' }
+          }}
+        >
+          <Box sx={{ mb: { xs: 3, md: 0 } }}>
+            <Typography variant="h1">AI Tools</Typography>
+            <Typography variant="h5" color="text.secondary">
+              Accelerate your teaching tasks with intelligent tools.
+            </Typography>
+          </Box>
+          <Box
+            component="img"
+            src={AIToolsImage}
+            alt="AI Tools illustration"
+            sx={{ height: { xs: 220, md: 300 }, maxWidth: { xs: '80%', md: 'auto' } }}
+          />
+        </Box>
 
-      <Typography variant="body1" sx={{ mb: 3 }}>
-        Pilih fitur di bawah ini untuk membantumu menyelesaikan tugas administratif dengan lebih mudah:
-      </Typography>
-
-      <Grid container spacing={3}>
-        {tools.map((tool, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <Card
-              sx={{
-                height: '100%',
-                borderRadius: 3,
-                transition: '0.3s',
-                '&:hover': {
-                  transform: 'scale(1.02)',
-                  boxShadow: 6
-                },
-                backgroundColor: theme.palette.background.paper
-              }}
-            >
-              <CardActionArea onClick={() => tool.path !== '#' && navigate(tool.path)}>
-                <CardContent>
-                  <Avatar
-                    sx={{
-                      bgcolor: theme.palette.primary.main,
-                      width: 56,
-                      height: 56,
-                      mb: 1
-                    }}
-                  >
-                    {tool.icon}
-                  </Avatar>
-                  <Typography variant="h6" sx={{ mt: 1 }}>
-                    {tool.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    {tool.description}
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
+        <Grid container spacing={3}>
+          {tools.map((tool, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 3,
+                  borderRadius: 3,
+                  height: '100%',
+                  transition: 'transform 0.3s, box-shadow 0.3s',
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                    boxShadow: 6,
+                  },
+                  cursor: tool.path !== '#' ? 'pointer' : 'default',
+                }}
+                onClick={() => tool.path !== '#' && navigate(tool.path)}
+              >
+                <Avatar
+                  sx={{
+                    bgcolor: theme.palette.primary.main,
+                    width: 56,
+                    height: 56,
+                    mb: 2,
+                  }}
+                >
+                  {tool.icon}
+                </Avatar>
+                <Typography variant="h6">{tool.title}</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  {tool.description}
+                </Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </motion.div>
   );
 }
 

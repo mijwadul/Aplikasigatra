@@ -30,6 +30,9 @@ function AppRoutes() {
           }
         >
           <Route path="/ai/tools" element={<AITools />} />
+          <Route path="/aitools/retriever" element={<Retriever />} />
+          <Route path="/aitools/search" element={<SearchDocs />} />
+          <Route path="/aitools/generator" element={<Generator />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/schools" element={<SchoolManagementPage />} />
           <Route path="/classes" element={<ClassManagementPage />} />

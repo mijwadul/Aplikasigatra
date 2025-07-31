@@ -31,7 +31,7 @@ const SidebarContent = () => {
   const menuItems = [
     { text: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard', roles: ['Developer', 'School Admin', 'Teacher'] },
     { text: 'Docs', icon: <MenuBookOutlinedIcon />, path: '#', roles: ['Developer', 'School Admin', 'Teacher'] },
-    { text: 'AI Tools', icon: <PsychologyAltOutlinedIcon />, path: '"/aitools"', roles: ['Developer', 'Teacher'] },
+    { text: 'AI Tools', icon: <PsychologyAltOutlinedIcon />, path: '/ai/tools', roles: ['Developer', 'Teacher'] },
     { text: 'Reports', icon: <BarChartOutlinedIcon />, path: '#', roles: ['Developer', 'School Admin', 'Teacher'] },
     { text: 'School Management', icon: <SchoolOutlinedIcon />, path: '/schools', roles: ['Developer', 'School Admin'] },
     { text: 'Class Management', icon: <ClassOutlinedIcon />, path: '/classes', roles: ['Developer', 'School Admin', 'Teacher'] },

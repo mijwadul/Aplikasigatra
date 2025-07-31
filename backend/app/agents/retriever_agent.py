@@ -8,6 +8,7 @@ from urllib.parse import urljoin
 from chromadb import PersistentClient
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
+from app.utils.chroma_client import get_collection
 
 load_dotenv()
 
@@ -202,3 +203,54 @@ def query_documents_by_text(query_text, top_k=5):
         })
 
     return docs
+
+def extract_text_from_url(url):
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        res = requests.get(url, headers=headers, timeout=10)
+        res.raise_for_status()
+
+        if 'application/pdf' in res.headers.get('Content-Type', ''):
+            return None  # sudah ditangani oleh PDF handler
+
+        soup = BeautifulSoup(res.text, 'html.parser')
+
+        # Clean up common non-content tags
+        for tag in soup(['script', 'style', 'nav', 'header', 'footer']):
+            tag.decompose()
+
+        text = soup.get_text(separator=' ', strip=True)
+        title = soup.title.string if soup.title else "Untitled"
+
+        return {
+            "title": title,
+            "text": text,
+            "url": url
+        }
+    except Exception as e:
+        print(f"[extract_text_from_url] Error: {e}")
+        return {"success": False, "error": str(e)}
+    
+def embed_document_from_url(data):
+    collection = get_collection()
+    document_id = str(uuid.uuid4())
+    metadata = {
+        "title": data['title'],
+        "source": data['url'],
+        "jenis": "Web" if data['type'] == "html" else "PDF",
+        "mapel": None,
+        "kelas": None
+    }
+
+    collection.add(
+        documents=[data['text']],
+        metadatas=[metadata],
+        ids=[document_id]
+    )
+
+    return {
+        "id": document_id,
+        "title": data['title'],
+        "url": data['url'],
+        "jenis": metadata['jenis']
+    }

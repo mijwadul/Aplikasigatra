@@ -65,3 +65,19 @@ def query_documents():
 
     results = query_documents_by_text(q)
     return jsonify(results)
+
+@retriever_bp.route('/add-url', methods=['POST'])
+def add_url():
+    data = request.json
+    url = data.get("url")
+
+    if not url:
+        return jsonify({"error": "URL is required"}), 400
+
+    result = extract_text_from_url(url)
+
+    if not result["success"]:
+        return jsonify({"error": result["error"]}), 500
+
+    embedded = embed_document_from_url(result)
+    return jsonify(embedded), 200

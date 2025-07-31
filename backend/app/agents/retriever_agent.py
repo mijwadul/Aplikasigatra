@@ -5,8 +5,7 @@ import requests
 import fitz  # PyMuPDF
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from chromadb import Client
-from chromadb.config import Settings
+from chromadb import PersistentClient
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 
@@ -95,11 +94,8 @@ def embed_documents_by_ids(id_list):
 
     selected = [doc for doc in all_docs if doc['id'] in id_list]
 
-    client = Client(Settings(
-        chroma_db_impl="duckdb+parquet",
-        persist_directory=CHROMA_DIR
-    ))
-    collection = client.get_or_create_collection('kurikulum')
+    client = PersistentClient(path=CHROMA_DIR)
+    collection = client.get_or_create_collection("kurikulum")
 
     results = []
     for doc in selected:
@@ -118,7 +114,6 @@ def embed_documents_by_ids(id_list):
         except Exception as e:
             results.append({**doc, "status": f"error: {str(e)}"})
 
-    client.persist()
     return results
 
 # === GOOGLE SEARCH API (CSE) ===
@@ -187,3 +182,23 @@ def add_document_from_url(url):
         return doc_entry
     except Exception as e:
         return {"error": str(e)}, 500
+    
+def query_documents_by_text(query_text, top_k=5):
+    client = PersistentClient(path=CHROMA_DIR)
+    collection = client.get_or_create_collection("kurikulum")
+
+    results = collection.query(
+        query_texts=[query_text],
+        n_results=top_k
+    )
+
+    docs = []
+    for i in range(len(results["ids"][0])):
+        docs.append({
+            "id": results["ids"][0][i],
+            "content": results["documents"][0][i],
+            "metadata": results["metadatas"][0][i],
+            "score": results["distances"][0][i]
+        })
+
+    return docs

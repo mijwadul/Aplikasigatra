@@ -54,3 +54,14 @@ def add_document():
         return jsonify(result[0]), result[1]
 
     return jsonify(result), 200
+
+@retriever_bp.route('/api/query-documents')
+def query_documents():
+    from app.agents.retriever_agent import query_documents_by_text
+
+    q = request.args.get("q", "")
+    if not q:
+        return jsonify({"error": "No query"}), 400
+
+    results = query_documents_by_text(q)
+    return jsonify(results)

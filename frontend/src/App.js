@@ -5,6 +5,8 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import AITools from './pages/aitools/AITools';
 import Retriever from './pages/aitools/Retriever';
+import SearchDocs from './pages/aitools/SearchDocs';
+import Generator from './pages/aitools/Generator'; 
 import UserManagementPage from './pages/user/UserManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
@@ -28,7 +30,6 @@ function AppRoutes() {
           }
         >
           <Route path="/ai/tools" element={<AITools />} />
-          <Route path="/ai/retriever" element={<Retriever />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/schools" element={<SchoolManagementPage />} />
           <Route path="/classes" element={<ClassManagementPage />} />

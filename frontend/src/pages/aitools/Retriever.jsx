@@ -15,8 +15,7 @@ import {
   TextField
 } from '@mui/material';
 import axios from 'axios';
-
-export default function Retriever() {
+function Retriever() {
   const [documents, setDocuments] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -194,3 +193,5 @@ export default function Retriever() {
     </Box>
   );
 }
+
+export default Retriever;

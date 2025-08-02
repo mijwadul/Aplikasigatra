@@ -5,14 +5,16 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import AITools from './pages/aitools/AITools';
 import Retriever from './pages/aitools/Retriever';
-import SearchDocs from './pages/aitools/SearchDocs';
+import SearchDocs from './pages/aitools/SearchDocs'; // <-- PERBAIKAN DI SINI
 import Generator from './pages/aitools/Generator'; 
 import UserManagementPage from './pages/user/UserManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
-import SchoolManagementPage from './pages/SchoolManagementPage'; // Import new page
-import ClassManagementPage from './pages/ClassManagementPage'; // Import new page
+import SchoolManagementPage from './pages/SchoolManagementPage';
+import ClassManagementPage from './pages/ClassManagementPage';
 import { AnimatePresence } from 'framer-motion';
+import DocsPage from './pages/DocsPage';
+import DocDetailPage from './pages/DocDetailPage';
 
 function AppRoutes() {
   const location = useLocation();
@@ -36,6 +38,8 @@ function AppRoutes() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/schools" element={<SchoolManagementPage />} />
           <Route path="/classes" element={<ClassManagementPage />} />
+          <Route path="/docs" element={<DocsPage />} />
+           <Route path="/docs/:docId" element={<DocDetailPage />} />
           <Route path="/users" element={<UserManagementPage />} />
         </Route>
 

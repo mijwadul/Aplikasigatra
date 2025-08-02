@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "0cdcd979-fe9b-4319-a77b-1665c106504c",
+    "source": "manual",
+    "url": "https://kurikulum.kemdikbud.go.id/wp-content/unduhan/CP_2022.pdf",
+    "file_name": "CP_2022.pdf",
+    "local_path": "D:\\Mijwadul\\AI\\AplikasiGuruAI 0.2\\gatra-sinau-app\\backend\\app\\agents\\..\\data\\raw\\CP_2022.pdf",
+    "status": "ready"
+  },
+  {
+    "id": "4c225bd7-cdb6-44c9-820d-6ee1725fda7a",
+    "source": "manual",
+    "url": "https://kurikulum.kemdikbud.go.id/file/cp/dasmen/33.%20CP%20PJOK.pdf",
+    "file_name": "33.%20CP%20PJOK.pdf",
+    "local_path": "D:\\Mijwadul\\AI\\AplikasiGuruAI 0.2\\gatra-sinau-app\\backend\\app\\agents\\..\\data\\raw\\33.%20CP%20PJOK.pdf",
+    "status": "ready"
+  }
+]

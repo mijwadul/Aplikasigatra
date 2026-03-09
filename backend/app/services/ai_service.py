@@ -1,10 +1,8 @@
 import os
-import google.generativeai as genai
+from google import genai
 import requests
 
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-
-model = genai.GenerativeModel('gemini-2.5-flash')
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
 def generate_content_with_context(query, context_chunks):
     """Generates content using the Gemini model with provided context."""
@@ -23,7 +21,10 @@ def generate_content_with_context(query, context_chunks):
     )
 
     try:
-        response = model.generate_content(full_prompt)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=full_prompt,
+        )
         ai_response = response.text
         print("AI content generated successfully.")
         return ai_response

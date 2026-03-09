@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, TextField, Button, Paper } from '@mui/material';
+import { Box, Typography, TextField, Button, Paper, InputAdornment, IconButton } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import LoginImage from '../assets/login.png';
 import LogoImage from '../assets/logo.png';
@@ -9,6 +10,7 @@ import AuthContext from '../context/AuthContext';
 function LoginPage() {
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { user, login } = useContext(AuthContext); // Use our context
@@ -152,11 +154,26 @@ function LoginPage() {
                   fullWidth 
                   name="password" 
                   label="Password" 
-                  type="password" 
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)}
                   sx={textFieldSx}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          onMouseDown={(e) => e.preventDefault()}
+                          edge="end"
+                          size="small"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </motion.div>
               {error && (

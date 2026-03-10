@@ -1,9 +1,8 @@
 import chromadb
-from sentence_transformers import SentenceTransformer
 import os
 
 # --- Configuration ---
-model = SentenceTransformer('all-MiniLM-L6-v2')
+# ChromaDB uses all-MiniLM-L6-v2 by default; no need to load it explicitly
 INSTANCE_FOLDER_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'instance'))
 
 # 1. Initialize ChromaDB client with persistence

@@ -1,0 +1,74 @@
+===========================================================
+RENCANA PENGEMBANGAN V2 - FONDASI PENGGUNA & DATA
+===========================================================
+
+Prinsip Utama: Sebelum membangun antarmuka utama (Generator AI), kita akan mematangkan fondasi manajemen pengguna, peran (role), dan data (sekolah, mata pelajaran) untuk menciptakan aplikasi yang kokoh dan skalabel.
+
+---
+### Langkah 1: Menyempurnakan Manajemen Pengguna & Peran
+---
+
+**Tujuan:** Aplikasi harus bisa membedakan peran pengguna dan menampilkan/membatasi fitur sesuai dengan hak aksesnya.
+
+**Backend:**
+1.  **[Proteksi API]** - Terapkan perlindungan berbasis peran pada semua endpoint CRUD di `routes.py`. Contoh: `POST /api/users` hanya bisa diakses oleh peran 'admin'.
+2.  **[Profil Pengguna]** - Buat endpoint baru `/api/profile` yang mengembalikan data pengguna yang sedang login (berdasarkan token JWT).
+3.  **[Update Login]** - Modifikasi endpoint `/api/login` agar selain mengembalikan token, juga mengembalikan data dasar pengguna seperti `username` dan `role`.
+
+**Frontend:**
+1.  **[AuthContext]** - Perbarui `AuthContext.tsx` untuk menyimpan tidak hanya status login (`isAuthenticated`), tetapi juga data pengguna (`user`, yang berisi `username` dan `role`).
+2.  **[Sidebar Dinamis]** - Modifikasi `Sidebar.tsx` agar menu "Manajemen Pengguna" hanya ditampilkan jika `user.role` dari AuthContext adalah 'admin'.
+3.  **[Halaman Profil]** - Buat halaman baru `ProfilePage.tsx` untuk menampilkan data pengguna dan menyediakan fungsi ganti password.
+
+---
+### Langkah 2: Membangun Manajemen Sekolah & Mata Pelajaran
+---
+
+**Tujuan:** Membuat sistem agar guru bisa dihubungkan dengan satu atau lebih sekolah dan mata pelajaran.
+
+**Backend:**
+1.  **[Model Database]** - Perbarui `models.py`:
+    * Buat tabel baru: `School` (id, name, address).
+    * Buat tabel baru: `Subject` (id, name, level).
+    * Buat dua tabel penghubung (association tables) untuk relasi Many-to-Many: `user_schools` (user_id, school_id) dan `user_subjects` (user_id, subject_id).
+    * Perbarui model `User` untuk menyertakan relasi ke `School` dan `Subject`.
+2.  **[API Baru]** - Buat endpoint CRUD lengkap untuk `/api/schools` dan `/api/subjects` yang hanya bisa diakses oleh 'admin'.
+3.  **[Update API User]** - Perbarui endpoint `POST` dan `PUT` untuk `/api/users` agar bisa menerima dan memproses daftar ID sekolah dan mata pelajaran yang akan dihubungkan ke seorang pengguna.
+
+**Frontend:**
+1.  **[Halaman Manajemen Baru]** - Buat dua halaman admin baru: `SchoolManagementPage.tsx` dan `SubjectManagementPage.tsx`, lengkap dengan fungsionalitas CRUD.
+2.  **[Update Form Pengguna]** - Modifikasi `UserFormDialog.tsx` dengan menambahkan dua komponen *multi-select dropdown*: satu untuk memilih sekolah, dan satu lagi untuk memilih mata pelajaran.
+
+---
+### Langkah 3: Merancang Ulang Antarmuka Generator AI
+---
+
+**Tujuan:** Mengubah generator AI dari input teks bebas menjadi antarmuka terpandu yang cerdas.
+
+**Frontend:**
+1.  **[UI Terpandu]** - Halaman `GeneratorPage.tsx` akan berisi:
+    * Dropdown "Pilih Mata Pelajaran" (berdasarkan mata pelajaran yang diajar guru).
+    * Dropdown "Pilih Jenjang/Kelas".
+    * Dropdown/Input "Pilih Topik/Bab" (bisa diisi dinamis berdasarkan materi yang tersedia).
+    * Input teks untuk permintaan spesifik (misal: "buat 5 soal HOTS").
+2.  **[Logika Cerdas]** - Tombol "Generate" hanya aktif jika semua pilihan yang relevan sudah diisi.
+3.  **[Notifikasi]** - Jika materi untuk mata pelajaran yang dipilih belum tersedia di database RAG, tampilkan notifikasi dan tautan ke halaman kontribusi.
+
+---
+### Langkah 4: Membangun Fitur Kontribusi (Upload Materi)
+---
+
+**Tujuan:** Memungkinkan guru untuk memperkaya "otak" AI dengan materi mereka sendiri.
+
+**Backend:**
+1.  **[API Upload]** - Buat endpoint `/api/upload-material` yang aman untuk menerima file PDF.
+2.  **[Proses Latar Belakang]** - Rancang sistem untuk memicu skrip RAG (`db init` & `db embed-docs`) pada file yang baru diunggah.
+
+**Frontend:**
+1.  **[Halaman Upload]** - Buat halaman `UploadPage.tsx` tempat guru bisa memilih file PDF, memberinya label mata pelajaran & kelas, lalu mengunggahnya.
+
+---
+### Catatan Penting: Hak Akses Developer
+---
+- **Akses Penuh**: Sebagai **Developer**, Anda akan selalu memiliki akses penuh ke semua data dan fitur.
+- **Mekanisme**: Ini tidak diatur melalui peran 'admin' di dalam aplikasi, melainkan melalui akses langsung ke *database* dan *server*. Perintah *command-line* yang sudah kita buat (`flask users create`, `flask db init`) adalah contoh dari "alat developer" yang melampaui batasan peran di dalam aplikasi.

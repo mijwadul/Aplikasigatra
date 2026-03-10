@@ -184,7 +184,7 @@ function ClassManagementPage() {
               {classes.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell>{row.class_name}</TableCell>
-                  {user?.role === 'Developer' && <TableCell>{getSchoolName(row.school_id)}</TableCell>}
+                  {user?.role === 'Developer' && <TableCell>{row.school || getSchoolName(row.school_id) || 'N/A'}</TableCell>}
                   <TableCell>{row.subject || '-'}</TableCell>
                   <TableCell>{row.teacher || '-'}</TableCell>
                   <TableCell align="right">

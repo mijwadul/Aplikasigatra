@@ -1,0 +1,62 @@
+===========================================================
+ROADMAP PENGEMBANGAN APLIKASI GURU AI
+===========================================================
+
+-----------------------------------------------------------
+Fase 0: Persiapan & Pondasi Proyek
+-----------------------------------------------------------
+- Inisialisasi struktur proyek Backend (Flask) dan Frontend (React + TypeScript).
+- Pengaturan lingkungan pengembangan terisolasi (venv & node_modules).
+- Instalasi semua dependensi awal untuk kedua sisi.
+- Konfigurasi dasar agar frontend dan backend bisa "berbicara".
+
+-----------------------------------------------------------
+Fase 1: Backend & Inti AI
+-----------------------------------------------------------
+- Berhasil mengekstrak konten TEKS dari file-file PDF.
+- Membuat dan mengkonfigurasi database SQL (SQLite) untuk menyimpan teks mentah.
+- Mengintegrasikan database Vektor (ChromaDB) untuk menyimpan "otak" AI (embedding).
+- Membangun alur kerja RAG (Retrieval-Augmented Generation) dari awal hingga akhir.
+- Backend sekarang memiliki API endpoint (/api/ask-ai) yang fungsional untuk menerima query dan menghasilkan jawaban cerdas berdasarkan data PDF.
+
+-----------------------------------------------------------
+Fase 2: Autentikasi & Kerangka Frontend
+-----------------------------------------------------------
+- [✅] Membangun tampilan visual (UI) untuk halaman login.
+- [📋] Membuat kerangka utama aplikasi (MainLayout) dengan Sidebar dan AppBar.
+- [📋] Mengkonfigurasi routing dasar dengan React Router untuk navigasi halaman.
+- [📋] Membuat halaman login menjadi fungsional dengan menghubungkannya ke backend.
+- [📋] Mengimplementasikan logika autentikasi (login/logout) dan sesi pengguna.
+- [📋] Membuat menu navigasi di Sidebar berfungsi.
+
+-----------------------------------------------------------
+Fase 3: Fitur Guru - AI Generator & Perpustakaan
+-----------------------------------------------------------
+- Membangun antarmuka pengguna (UI) untuk "Pusat Pembuatan Materi".
+- Menghubungkan UI tersebut ke endpoint API /api/ask-ai.
+- Mendesain dan membangun fitur "Perpustakaan Saya" untuk menyimpan hasil generatif.
+- Mengimplementasikan fitur status "Draft vs Siap Ajar".
+
+-----------------------------------------------------------
+Fase 4: Manajemen Kelas & Ujian
+-----------------------------------------------------------
+- Membangun antarmuka dan logika backend untuk membuat dan mengelola data kelas & siswa.
+- Merancang fitur "Penyusun Ujian" yang mengambil soal dari Perpustakaan.
+- Mengimplementasikan pengaturan ujian (durasi, acak soal).
+- Membuat fitur ekspor ujian ke PDF.
+- Membangun antarmuka untuk penilaian (manual & otomatis).
+
+-----------------------------------------------------------
+Fase 5: Fitur Admin & Penyempurnaan
+-----------------------------------------------------------
+- Membangun dasbor khusus untuk peran Admin.
+- Membuat antarmuka untuk Admin mengelola akun Guru.
+- Menambahkan sentuhan akhir pada UI/UX, termasuk animasi dengan Framer Motion.
+- Melakukan pengujian menyeluruh pada semua fitur dan peran pengguna.
+
+-----------------------------------------------------------
+Fase 6: Deployment
+-----------------------------------------------------------
+- Melakukan optimasi performa pada frontend dan backend.
+- Menyiapkan server produksi.
+- Meluncurkan aplikasi agar bisa diakses secara online.

@@ -49,7 +49,7 @@ function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {
     }
   };
 
-  const fetchTeachersForDeveloper = async (schoolId) => {
+  const fetchSchoolDetailsForDeveloper = async (schoolId) => {
     const token = localStorage.getItem('authToken');
     try {
       const res = await axios.get(`http://localhost:5000/api/schools/${schoolId}/details-for-class`, {
@@ -57,6 +57,7 @@ function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {
       });
 
       if (res.data.teachers) setTeachers(res.data.teachers);
+      if (res.data.subjects) setSubjects(res.data.subjects);
     } catch (err) {
       console.error('Failed to fetch school details:', err);
     }
@@ -78,14 +79,18 @@ function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {
       fetchFormData();
 
       if (user?.role === 'Developer' && defaultSchoolId) {
-        fetchTeachersForDeveloper(defaultSchoolId);
+        fetchSchoolDetailsForDeveloper(defaultSchoolId);
       }
     }
   }, [initialData, open, user]);
 
   useEffect(() => {
     if (user?.role === 'Developer' && formData.school_id) {
-      fetchTeachersForDeveloper(formData.school_id);
+      fetchSchoolDetailsForDeveloper(formData.school_id);
+      setFormData(prev => ({ ...prev, subject_id: '' }));
+    } else if (user?.role === 'Developer' && !formData.school_id) {
+      setSubjects([]);
+      setFormData(prev => ({ ...prev, subject_id: '' }));
     }
   }, [formData.school_id]);
 
@@ -147,32 +152,34 @@ function ClassFormModal({ open, onClose, onSubmit, schools = [], initialData = {
 
         {user?.role === 'Developer' && (
           <FormControl fullWidth margin="dense" required>
-            <InputLabel>School</InputLabel>
+            <InputLabel>Sekolah</InputLabel>
             <Select
               name="school_id"
               value={formData.school_id}
               onChange={handleChange}
-              label="School"
+              label="Sekolah"
             >
               {schools.map(school => (
-                <MenuItem key={school.id} value={school.id}>{school.name}</MenuItem>
+                <MenuItem key={school.id} value={school.id}>
+                  {school.name}{school.level ? ` (${school.level})` : ''}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
         )}
 
         <FormControl fullWidth margin="dense" required>
-          <InputLabel>Subject</InputLabel>
+          <InputLabel>Mata Pelajaran</InputLabel>
           <Select
             name="subject_id"
             value={formData.subject_id}
             onChange={handleChange}
-            label="Subject"
+            label="Mata Pelajaran"
           >
             {subjects.map(subject => (
               <MenuItem key={subject.id} value={subject.id}>{subject.name}</MenuItem>
             ))}
-            <MenuItem value="Others">Others</MenuItem>
+            <MenuItem value="Others">Lainnya (tambah baru)</MenuItem>
           </Select>
         </FormControl>
 

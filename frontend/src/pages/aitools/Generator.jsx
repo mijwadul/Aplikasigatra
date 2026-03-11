@@ -38,6 +38,7 @@ function Generator() {
   const [hasil, setHasil] = useState('');
   const [alertInfo, setAlertInfo] = useState({ show: false, type: 'info', message: '' });
   const [isDownloading, setIsDownloading] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState('');
 
   useEffect(() => {
     const fetchDataForForm = async () => {
@@ -118,11 +119,13 @@ function Generator() {
     setLoading(true);
     setHasil('');
     setAlertInfo({ show: false });
+    setGenerationStatus('');
     let subjectId = mapel;
     const token = localStorage.getItem('authToken');
 
     try {
       if (user.role === 'Developer' && mapel === 'add_new' && newSubjectName.trim()) {
+        setGenerationStatus('➕ Menambah mata pelajaran baru...');
         const res = await axios.post('http://localhost:5000/api/subjects', 
           { name: newSubjectName },
           { headers: { Authorization: `Bearer ${token}` } }
@@ -132,6 +135,7 @@ function Generator() {
         setNewSubjectName('');
       }
       
+      setGenerationStatus('🤖 AI sedang berpikir dan membuat dokumen...');
       const res = await axios.post('http://localhost:5000/api/generate/document-agent', {
         kelas,
         mapel: subjectId,
@@ -141,13 +145,17 @@ function Generator() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      setGenerationStatus('✅ Dokumen berhasil dibuat!');
       setHasil(res.data.text);
       setAlertInfo({ show: true, type: 'success', message: 'Document generated successfully!' });
     } catch (err) {
       console.error(err);
+      setGenerationStatus('❌ Gagal membuat dokumen');
       setAlertInfo({ show: true, type: 'error', message: err.response?.data?.error || 'Failed to generate document.' });
     } finally {
       setLoading(false);
+      // Clear status setelah 2 detik
+      setTimeout(() => setGenerationStatus(''), 2000);
     }
   };
 

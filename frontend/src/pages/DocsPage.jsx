@@ -41,7 +41,6 @@ function DocsPage() {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-    setSelectedDoc(null);
   };
 
   const handleEdit = () => {
@@ -226,7 +225,10 @@ function DocsPage() {
         </Menu>
 
         {/* Edit Dialog */}
-        <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
+        <Dialog open={editDialogOpen} onClose={() => {
+          setEditDialogOpen(false);
+          setSelectedDoc(null);
+        }} maxWidth="md" fullWidth>
           <DialogTitle>Edit Document</DialogTitle>
           <DialogContent>
             <TextField
@@ -253,13 +255,20 @@ function DocsPage() {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={() => {
+              setEditDialogOpen(false);
+              setSelectedDoc(null);
+            }}>Cancel</Button>
             <Button onClick={handleUpdateDoc} variant="contained">Update</Button>
           </DialogActions>
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <Dialog open={deleteDialogOpen} onClose={() => {
+          setDeleteDialogOpen(false);
+          setSelectedDoc(null);
+          setDocToDelete(null);
+        }}>
           <DialogTitle>Confirm Delete</DialogTitle>
           <DialogContent>
             <Typography>
@@ -267,7 +276,11 @@ function DocsPage() {
             </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button onClick={() => {
+              setDeleteDialogOpen(false);
+              setSelectedDoc(null);
+              setDocToDelete(null);
+            }}>Cancel</Button>
             <Button onClick={confirmDelete} color="error" variant="contained">
               Delete
             </Button>

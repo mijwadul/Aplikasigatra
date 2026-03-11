@@ -57,11 +57,31 @@ function DocDetailPage() {
         { headers: { Authorization: `Bearer ${token}` }}
       );
       
-      setDocument(res.data.document);
-      setEditDialogOpen(false);
-      setAlertInfo({ show: true, type: 'success', message: 'Document updated successfully!' });
+      console.log('Update response:', res.status, res.data);
+      
+      // Handle response dengan validasi yang lebih aman
+      if (res.status === 200 && res.data) {
+        const updatedDoc = res.data.document || res.data;
+        if (updatedDoc && updatedDoc.id) {
+          setDocument(updatedDoc);
+          setEditDialogOpen(false);
+          setAlertInfo({ show: true, type: 'success', message: 'Document updated successfully!' });
+        } else {
+          // Fallback: update dengan data yang ada
+          setDocument(prev => ({
+            ...prev,
+            title: editTitle,
+            content: editContent
+          }));
+          setEditDialogOpen(false);
+          setAlertInfo({ show: true, type: 'success', message: 'Document updated successfully!' });
+        }
+      } else {
+        setAlertInfo({ show: true, type: 'error', message: 'Failed to update document: Invalid response' });
+      }
     } catch (err) {
-      setAlertInfo({ show: true, type: 'error', message: 'Failed to update document.' });
+      console.error('Update error:', err);
+      setAlertInfo({ show: true, type: 'error', message: `Failed to update document: ${err.response?.data?.error || err.message || 'Network error'}` });
     }
   };
 

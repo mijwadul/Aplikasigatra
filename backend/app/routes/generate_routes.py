@@ -79,7 +79,7 @@ def generate_document_agent(current_user):
         return jsonify({"error": "Mata pelajaran tidak ditemukan."}), 404
     
     try:
-        final_document = generate_document_with_agents(str(kelas), subject.name, jenis, topik)
+        final_document = generate_document_with_agents(str(kelas), subject.name, jenis, topik, current_user)
         return jsonify({"text": final_document})
     except Exception as e:
         print(f"Error during agent generation: {e}")

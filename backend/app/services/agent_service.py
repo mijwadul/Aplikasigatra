@@ -4,6 +4,8 @@ import re
 from .ai_service import generate_content_with_context, generate_summary_with_together_ai
 from .rag_service import search_index, add_to_collection
 from app.utils.search_tool import search_internet
+from app.models import School
+import datetime
 
 def parse_json_from_string(text):
     """
@@ -153,8 +155,16 @@ def run_qa_specialist_agent(full_draft, jenis_dokumen, kelas, mapel):
     return generate_content_with_context(prompt, [])
 
 # --- FUNGSI ORKESTRATOR UTAMA ---
-def generate_document_with_agents(kelas, mapel, jenis, topik):
+def generate_document_with_agents(kelas, mapel, jenis, topik, user):
     print(f"🚀 Memulai alur kerja agen untuk: {jenis} - {mapel} Kelas {kelas}")
+    
+    # Get school info
+    school = None
+    if user.school_id:
+        school = School.query.get(user.school_id)
+    elif user.schools_taught:
+        school = user.schools_taught[0] if user.schools_taught else None
+    
     print("🧠 Mencari konteks di database internal (ChromaDB)...")
     rag_context_chunks = search_index(f"Capaian Pembelajaran dan ATP untuk {mapel} kelas {kelas} mengenai {topik}")
     
@@ -174,6 +184,10 @@ def generate_document_with_agents(kelas, mapel, jenis, topik):
 
     draft_dokumen = f"**{jenis.upper()} {mapel.upper()} KELAS {kelas}**\n\n"
     draft_dokumen += f"**Topik:** {topik}\n\n"
+    draft_dokumen += f"**Dibuat oleh:** {user.username}\n"
+    if school:
+        draft_dokumen += f"**Sekolah:** {school.name}\n"
+    draft_dokumen += f"**Tanggal:** {datetime.datetime.now().strftime('%d %B %Y')}\n\n"
 
     if jenis == "Modul Ajar":
         materi_pembelajaran = [run_content_writer_agent(t, topik, kelas, mapel, full_context) for t in outline.get("tujuan_pembelajaran", [])]

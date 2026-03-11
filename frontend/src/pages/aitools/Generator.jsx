@@ -60,7 +60,8 @@ function Generator() {
 
   const handleSaveDocument = async () => {
     if (!hasil) return;
-    setAlertInfo({ show: true, type: 'info', message: 'Saving document...' });
+    setGenerationStatus(' Menyimpan dokumen...');
+    setAlertInfo({ show: false });
     try {
       const token = localStorage.getItem('authToken');
       const subjectName = availableSubjects.find(s => s.id === mapel)?.name || 'Unknown';
@@ -73,15 +74,20 @@ function Generator() {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      setGenerationStatus('');
       setAlertInfo({ show: true, type: 'success', message: 'Document saved successfully!' });
+      setTimeout(() => setGenerationStatus(''), 2000);
     } catch (error) {
+      setGenerationStatus('');
       setAlertInfo({ show: true, type: 'error', message: 'Failed to save document.' });
+      setTimeout(() => setGenerationStatus(''), 2000);
     }
   };
   
   const handleDownload = async () => {
     if (!hasil) return;
     setIsDownloading(true);
+    setGenerationStatus('📄 Membuat PDF...');
     setAlertInfo({ show: false });
     const subjectName = availableSubjects.find(s => s.id === mapel)?.name || 'Unknown Subject';
     const title = `${jenis} ${subjectName} Grade ${kelas} - ${topik}`;
@@ -106,10 +112,15 @@ function Generator() {
 
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
+      
+      setGenerationStatus('✅ PDF berhasil diunduh!');
+      setTimeout(() => setGenerationStatus(''), 2000);
 
     } catch (error) {
       console.error("Failed to download PDF:", error);
+      setGenerationStatus('❌ Gagal membuat PDF');
       setAlertInfo({ show: true, type: 'error', message: 'Failed to create PDF file.' });
+      setTimeout(() => setGenerationStatus(''), 2000);
     } finally {
       setIsDownloading(false);
     }
@@ -261,7 +272,25 @@ function Generator() {
           </Box>
         </Paper>
 
-        {loading && <LinearProgress sx={{ my: 2 }} />}
+        {loading && (
+          <Box sx={{ my: 2 }}>
+            <LinearProgress />
+            {generationStatus && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+                {generationStatus}
+              </Typography>
+            )}
+          </Box>
+        )}
+
+        {/* Status display untuk save dan download */}
+        {generationStatus && !loading && (
+          <Box sx={{ my: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+              {generationStatus}
+            </Typography>
+          </Box>
+        )}
 
         {hasil && (
           <Paper elevation={3} sx={{ p: 3, mt: 2, bgcolor: 'background.default' }}>

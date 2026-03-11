@@ -71,33 +71,16 @@ function DocDetailPage() {
   };
 
   const confirmDelete = async () => {
-    // Convert docId to number and validate
-    const docIdNum = parseInt(docId);
-    
-    if (!docId || isNaN(docIdNum)) {
-      setAlertInfo({ show: true, type: 'error', message: 'Invalid document ID for deletion' });
-      return;
-    }
-
-    console.log('Attempting to delete document with ID:', docIdNum);
-    
     try {
       const token = localStorage.getItem('authToken');
-      const response = await axios.delete(`http://localhost:5000/api/docs/${docIdNum}`, {
+      await axios.delete(`http://localhost:5000/api/docs/${docId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      console.log('Delete response:', response.status, response.data);
-      
-      if (response.status === 200) {
-        setAlertInfo({ show: true, type: 'success', message: 'Document deleted successfully!' });
-        setTimeout(() => navigate('/docs'), 2000);
-      } else {
-        setAlertInfo({ show: true, type: 'error', message: `Failed to delete document: ${response.data?.error || 'Unknown error'}` });
-      }
+      setAlertInfo({ show: true, type: 'success', message: 'Document deleted successfully!' });
+      setTimeout(() => navigate('/docs'), 2000);
     } catch (err) {
-      console.error('Delete error:', err);
-      setAlertInfo({ show: true, type: 'error', message: `Failed to delete document: ${err.response?.data?.error || err.message || 'Network error'}` });
+      setAlertInfo({ show: true, type: 'error', message: 'Failed to delete document.' });
     }
   };
 
@@ -106,6 +89,7 @@ function DocDetailPage() {
       if (!user || !docId) return;
       try {
         const token = localStorage.getItem('authToken');
+        // NOTE: We need a new backend endpoint to fetch a single document by ID
         const res = await axios.get(`http://localhost:5000/api/docs/${docId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -184,6 +168,20 @@ function DocDetailPage() {
                 <IconButton onClick={handleMenuClick}>
                   <MoreVertIcon />
                 </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem onClick={handleEdit}>
+                    <EditIcon sx={{ mr: 1 }} />
+                    Edit
+                  </MenuItem>
+                  <MenuItem onClick={handleDelete}>
+                    <DeleteIcon sx={{ mr: 1 }} />
+                    Delete
+                  </MenuItem>
+                </Menu>
               </Box>
             </Box>
             <Divider sx={{ my: 2 }} />

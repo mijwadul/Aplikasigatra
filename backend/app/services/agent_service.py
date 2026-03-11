@@ -2,7 +2,7 @@ import os
 import json
 import re
 from .ai_service import generate_content_with_context, generate_summary_with_together_ai
-from .rag_service import search_index
+from .rag_service import search_index, add_to_collection
 from app.utils.search_tool import search_internet
 
 def parse_json_from_string(text):
@@ -31,8 +31,18 @@ def parse_json_from_string(text):
 def run_research_agent(topik, kelas, mapel, jenis_dokumen):
     """
     Tugas: Mencari informasi relevan dari internet dan merangkumnya menggunakan Together AI.
+    Hasilnya akan disimpan ke ChromaDB untuk caching.
     """
     print(f"🔎 Agen Peneliti: Mencari di internet untuk '{jenis_dokumen}' tentang '{topik} {mapel} kelas {kelas}'...")
+    
+    # Buat query key untuk caching
+    cache_key = f"{jenis_dokumen}_{mapel}_{kelas}_{topik}".replace(" ", "_").lower()
+    
+    # Cek dulu di ChromaDB untuk hasil pencarian yang sudah di-cache
+    cached_results = search_index(f"internet_search_{cache_key}", k=5)
+    if cached_results:
+        print(f"✅ Ditemukan hasil pencarian internet yang di-cache untuk: {cache_key}")
+        return cached_results[0]  # Return hasil yang sudah di-cache
     
     # Kueri pencarian sekarang menyertakan jenis dokumen untuk hasil yang lebih relevan
     queries = [
@@ -60,6 +70,14 @@ def run_research_agent(topik, kelas, mapel, jenis_dokumen):
     LAPORAN RISET (dalam Bahasa Indonesia):
     """
     research_summary = generate_summary_with_together_ai(summarization_prompt)
+    
+    # Simpan hasil ke ChromaDB untuk caching
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cache_document = f"INTERNET_SEARCH_CACHE_{cache_key}: CREATED_AT:{timestamp}\n{research_summary}"
+    add_to_collection([cache_document], f"internet_search_{cache_key}")
+    print(f"💾 Hasil pencarian internet disimpan ke cache dengan key: {cache_key}")
+    
     return research_summary
 
 def run_curriculum_specialist_agent(kelas, mapel, jenis_dokumen, topik, full_context):

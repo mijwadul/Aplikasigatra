@@ -9,6 +9,7 @@ from app.extensions import db
 from app.services.agent_service import generate_document_with_agents
 from sqlalchemy import distinct
 import json
+import datetime
 from io import BytesIO
 from flask import send_file
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
@@ -148,3 +149,83 @@ def get_saved_document(current_user, doc_id):
     # Ambil dokumen berdasarkan ID dan pastikan pemiliknya adalah user yang sedang login
     doc = GeneratedDocument.query.filter_by(id=doc_id, created_by_id=current_user.id).first_or_404()
     return jsonify(doc.to_dict())
+
+@generator_bp.route('/api/docs/<int:doc_id>', methods=['PUT'])
+@token_required
+def update_saved_document(current_user, doc_id):
+    """
+    Update dokumen yang sudah disimpan
+    """
+    doc = GeneratedDocument.query.filter_by(id=doc_id, created_by_id=current_user.id).first_or_404()
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    # Update fields yang diizinkan
+    if 'title' in data:
+        doc.title = data['title']
+    if 'content' in data:
+        doc.content = data['content']
+    if 'document_type' in data:
+        doc.document_type = data['document_type']
+    if 'subject' in data:
+        doc.subject = data['subject']
+    if 'grade_level' in data:
+        doc.grade_level = data['grade_level']
+    
+    # Update timestamp
+    doc.updated_at = datetime.datetime.utcnow()
+    
+    try:
+        db.session.commit()
+        return jsonify({"message": "Document updated successfully!", "document": doc.to_dict()}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to update document: {str(e)}"}), 500
+
+@generator_bp.route('/api/docs/<int:doc_id>', methods=['DELETE'])
+@token_required
+def delete_saved_document(current_user, doc_id):
+    """
+    Hapus dokumen yang sudah disimpan
+    """
+    print(f"🗑️ Attempting to delete document {doc_id} by user {current_user.id}")
+    print(f"🔍 doc_id type: {type(doc_id)}, value: {doc_id}")
+    
+    try:
+        # Cek dokumen sebelum delete
+        doc = GeneratedDocument.query.filter_by(id=doc_id, created_by_id=current_user.id).first()
+        
+        if not doc:
+            print(f"❌ Document {doc_id} not found or access denied")
+            return jsonify({"error": "Document not found or access denied"}), 404
+        
+        print(f"📄 Document to delete: ID={doc.id}, Title='{doc.title}'")
+        
+        # Simpan info sebelum delete
+        doc_info = f"ID: {doc.id}, Title: {doc.title}, User: {current_user.id}"
+        
+        # Lakukan delete
+        db.session.delete(doc)
+        
+        # Commit transaction
+        db.session.commit()
+        
+        # Verifikasi delete
+        deleted_doc = GeneratedDocument.query.filter_by(id=doc_id).first()
+        if deleted_doc is None:
+            print(f"✅ VERIFIED: Document {doc_id} successfully deleted from database")
+            print(f"📋 Deleted info: {doc_info}")
+            return jsonify({"message": "Document deleted successfully!", "deleted_doc": doc_info}), 200
+        else:
+            print(f"❌ ERROR: Document {doc_id} still exists in database after delete!")
+            return jsonify({"error": "Delete operation failed - document still exists"}), 500
+            
+    except Exception as e:
+        print(f"❌ CRITICAL ERROR during delete: {str(e)}")
+        print(f"❌ Full traceback: {e.__class__.__name__}")
+        import traceback
+        print(f"❌ Traceback: {traceback.format_exc()}")
+        db.session.rollback()
+        return jsonify({"error": f"Failed to delete document: {str(e)}"}), 500

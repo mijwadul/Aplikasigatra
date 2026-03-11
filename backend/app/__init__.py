@@ -34,7 +34,7 @@ def create_app():
     from .routes import (
         upload_routes, status_routes, generate_routes, auth_routes, 
         user_management_routes, class_routes, school_routes, subject_routes,
-        dashboard_routes
+        dashboard_routes, cache_routes
     )
     app.register_blueprint(upload_routes.upload_bp)
     app.register_blueprint(status_routes.status_bp)
@@ -50,6 +50,7 @@ def create_app():
     app.register_blueprint(school_routes.school_bp)
     app.register_blueprint(subject_routes.subject_bp)
     app.register_blueprint(dashboard_routes.dashboard_bp)
+    app.register_blueprint(cache_routes.cache_bp)
     app.register_blueprint(retriever_bp)
     
     from . import commands

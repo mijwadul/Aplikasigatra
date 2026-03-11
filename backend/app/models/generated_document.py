@@ -12,6 +12,7 @@ class GeneratedDocument(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
     # Relasi untuk menghubungkan dokumen ini dengan pengguna yang membuatnya
     creator = db.relationship('User')
@@ -26,5 +27,6 @@ class GeneratedDocument(db.Model):
             'grade_level': self.grade_level,
             'content': self.content,
             'creator_username': self.creator.username if self.creator else None,
-            'created_at': self.created_at.isoformat()
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
